@@ -21,7 +21,7 @@ def hello():
 #   "passWord": "yes123"
 # }
 
-@app.route('/addUser', methods = ['POST'])
+@app.route('/users', methods = ['POST'])
 def addUser():
     if request.method == 'POST':
         data = request.data
@@ -31,7 +31,7 @@ def addUser():
         db.session.commit()
         return "Success!"
 
-@app.route('/getUser', methods = ['GET'])
+@app.route('/users', methods = ['GET'])
 def getUser():
     if request.method == 'GET':
         userList = User.query.order_by(User.UserId).all()
@@ -39,13 +39,13 @@ def getUser():
         # returned list of User objects must be serialized
         return jsonify(Serializer.serialize_list(userList))
 
-@app.route('/deleteUser/<UserName>', methods = ['DELETE'])
-def deleteUser(UserName):
-    if request.method == 'DELETE':
-        User.query.filter_by(UserName=UserName).delete()
-        db.session.commit()
+@app.route('/users', methods = ['DELETE'])
+def deleteUser():
+  username = request.args.get('username')
+  User.query.filter_by(UserName=username).delete()
+  db.session.commit()
         
-        return "Success!"
+  return "Success!"
 
 if __name__ == '__main__':
     app.run()
