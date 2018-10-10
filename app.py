@@ -26,7 +26,7 @@ def addUser():
     if request.method == 'POST':
         data = request.data
         dataDict = json.loads(data)
-        newUser = User(userName=dataDict['userName'], passWord=dataDict['passWord'])
+        newUser = User(UserName=dataDict['userName'], PassWord=dataDict['passWord'])
         db.session.add(newUser)
         db.session.commit()
         return "Success!"
@@ -34,15 +34,15 @@ def addUser():
 @app.route('/getUser', methods = ['GET'])
 def getUser():
     if request.method == 'GET':
-        userList = User.query.order_by(User.userId).all()
+        userList = User.query.order_by(User.UserId).all()
 
         # returned list of User objects must be serialized
         return jsonify(Serializer.serialize_list(userList))
 
-@app.route('/deleteUser/<userName>', methods = ['DELETE'])
-def deleteUser(userName):
+@app.route('/deleteUser/<UserName>', methods = ['DELETE'])
+def deleteUser(UserName):
     if request.method == 'DELETE':
-        User.query.filter_by(userName=userName).delete()
+        User.query.filter_by(UserName=UserName).delete()
         db.session.commit()
         
         return "Success!"

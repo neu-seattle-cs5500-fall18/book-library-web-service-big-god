@@ -5,9 +5,9 @@ import enum
 db = SQLAlchemy()
 
 class User(db.Model):
-    userId = db.Column(db.Integer, primary_key=True)
-    userName = db.Column(db.String(80), unique=True, nullable=False)
-    passWord = db.Column(db.String(80), unique=False, nullable=False)
+    UserId = db.Column(db.Integer, primary_key=True)
+    UserName = db.Column(db.String(80), unique=True, nullable=False)
+    PassWord = db.Column(db.String(80), unique=False, nullable=False)
     
     def serialize(self):
         res = Serializer.serialize(self)
@@ -37,7 +37,7 @@ class List(db.Model):
 
 class Book(db.Model):
     BookID = db.Column(db.Integer, primary_key=True)
-    OwnerID = db.Column(db.Integer, db.ForeignKey(User.userId),nullable=False)
+    OwnerID = db.Column(db.Integer, db.ForeignKey(User.UserId),nullable=False)
     BookName = db.Column(db.String(80), unique=False, nullable=False)
     PublishDate = db.Column(db.DateTime, unique=False, nullable=False)
     LoanedOut = db.Column(db.Boolean, unique=False, nullable=False)
@@ -58,15 +58,13 @@ class Note(db.Model):
 class LoanHistory(db.Model):
     LoanId = db.Column(db.Integer, primary_key=True)
     BookId = db.Column(db.Integer, db.ForeignKey(Book.BookID),nullable=False)
-    BorrowerId = db.Column(db.Integer, db.ForeignKey(User.userId),nullable=False)
+    BorrowerId = db.Column(db.Integer, db.ForeignKey(User.UserId),nullable=False)
     Due = db.Column(db.DateTime, unique=False, nullable=True)
     ActualReturnDate = db.Column(db.DateTime, unique=False, nullable=True)
 
     def serialize(self):
         res = Serializer.serialize(self)
         return res
-
-
 
 class BookToAuthors(db.Model):
     BookToAuthorsMapId = db.Column(db.Integer, primary_key=True)
