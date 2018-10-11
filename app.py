@@ -29,34 +29,40 @@ parser.add_argument('note_id')
 with app.app_context():
     db.create_all()
 
+
 @api.route('/hello')
-class hello(Resource):
+class Hello(Resource):
+    @api.doc('get_hello')
     def get(self):
         args = parser.parse_args()
         return {'world': args['world']}
+
 
 # Post json format example:
 # {
 #   "userName": "sam123",
 #   "passWord": "yes123"
 # }
-
 @api.route('/users')
-class users(Resource):
+class Users(Resource):
+    @api.doc('get_user')
     def get(self):
-        userList = User.query.order_by(User.UserId).all()
+        user_list = User.query.order_by(User.UserId).all()
 
         # returned list of User objects must be serialized
-        return jsonify(Serializer.serialize_list(userList))
+        return jsonify(Serializer.serialize_list(user_list))
 
+    @api.doc('create_user')
     def post(self):
         data = request.data
-        dataDict = json.loads(data)
-        newUser = User(UserName=dataDict['userName'], PassWord=dataDict['passWord'])
-        db.session.add(newUser)
+        data_dict = json.loads(data)
+        new_user = User(UserName=data_dict['userName'],
+                       PassWord=data_dict['passWord'])
+        db.session.add(new_user)
         db.session.commit()
-        return "Success!"
+        return "Success!", 201
 
+    @api.doc('delete_user')
     def delete(self):
         args = parser.parse_args()
         username = args['username']
@@ -71,15 +77,13 @@ class users(Resource):
 #   "title" : "Harry Potter",
 #   "publish_date" : "1993-05-07 10:41:37",
 # }
-
 @api.route('/books')
-class books(Resource):
+class Books(Resource):
 
     # TODO 1: current logic combine all get queries in one function, need to refactor
-    # it when the query become complicated
+    #         it when the query become complicated
 
-    # TODO 2: implement all functions with real logic
-
+    @api.doc('get_book')
     def get(self):
         args = parser.parse_args()
         book_id = args['book_id']
@@ -109,20 +113,22 @@ class books(Resource):
 
         # if no params pass in request url, return all books
         # TODO: remove this eventually, only for test
-        bookList = Book.query.order_by(Book.BookID).all()
-        return jsonify(Serializer.serialize_list(bookList))
+        book_list = Book.query.order_by(Book.BookID).all()
+        return jsonify(Serializer.serialize_list(book_list))
 
+    @api.doc('create_book')
     def post(self):
         data = request.data
-        dataDict = json.loads(data)
-        newBook = Book(OwnerID=dataDict['owner_id'],
-                       BookName=dataDict['title'],
-                       PublishDate=dataDict['publish_date'],
-                       LoanedOut=dataDict['loaned_out'])
-        db.session.add(newBook)
+        data_dict = json.loads(data)
+        new_book = Book(OwnerID=data_dict['owner_id'],
+                        BookName=data_dict['title'],
+                        PublishDate=data_dict['publish_date'],
+                        LoanedOut=data_dict['loaned_out'])
+        db.session.add(new_book)
         db.session.commit()
         return "Success!"
 
+    @api.doc('delete_book')
     def delete(self):
         args = parser.parse_args()
         book_id = args['book_id']
@@ -130,43 +136,47 @@ class books(Resource):
         db.session.commit()
         return "Success!"
 
+    @api.doc('update_book')
     def put(self):
         data = request.data
-        dataDict = json.loads(data)
+        data_dict = json.loads(data)
 
         args = parser.parse_args()
         book_id = args['book_id']
         book = Book.query.get(book_id)
-        book.OwnerID = dataDict['owner_id']
-        book.BookName = dataDict['title']
-        book.PublishDate = dataDict['publish_date']
-        book.LoanedOut = dataDict['loaned_out']
+        book.OwnerID = data_dict['owner_id']
+        book.BookName = data_dict['title']
+        book.PublishDate = data_dict['publish_date']
+        book.LoanedOut = data_dict['loaned_out']
         db.session.commit()
         return "Success!"
+
 
 # Post list json format example:
 # {
 #   "name": "sci",
 # }
 @api.route('/lists')
-class lists(Resource):
+class Lists(Resource):
+    @api.doc('create_list')
     def post(self):
         data = request.data
-        dataDict = json.loads(data)
-        newList = List(ListName=dataDict['name'])
-        db.session.add(newList)
+        data_dict = json.loads(data)
+        new_list = List(ListName=data_dict['name'])
+        db.session.add(new_list)
         db.session.commit()
-        return "Success!"
+        return "Success!", 201
 
+    @api.doc('update_list')
     def put(self):
         data = request.data
-        dataDict = json.loads(data)
-        # books = dataDict['books']
+        data_dict = json.loads(data)
+        # books = data_dict['books']
 
         args = parser.parse_args()
         list_name = args['list_name']
-
         return {"update list": "success"}
+
 
 # Post loan json format example:
 # {
@@ -175,26 +185,29 @@ class lists(Resource):
 #   "due" : "1993-05-07 10:41:37",
 # }
 @api.route('/loans')
-class loans(Resource):
+class Loans(Resource):
+    @api.doc('create_loan')
     def post(self):
         data = request.data
-        dataDict = json.loads(data)
-        newLoanHistory = LoanHistory(BookId=dataDict['book_id'],
-                                     BorrowerId=dataDict['borrower_id'],
-                                     Due=dataDict['due'])
-        db.session.add(newLoanHistory)
+        data_dict = json.loads(data)
+        new_loan_history = LoanHistory(BookId=data_dict['book_id'],
+                                       BorrowerId=data_dict['borrower_id'],
+                                       Due=data_dict['due'])
+        db.session.add(new_loan_history)
         db.session.commit()
-        return "Success!"
+        return "Success!", 201
 
+    @api.doc('update_loan')
     def put(self):
         data = request.data
-        dataDict = json.loads(data)
-        # return_date = dataDict['return_date']
+        data_dict = json.loads(data)
+        # return_date = data_dict['return_date']
 
         args = parser.parse_args()
         loan_id = args['loan_id']
         return {"update loan": "success"}
 
+    @api.doc('get_loan')
     def get(self):
         args = parser.parse_args()
         return {"get loan status": "return or not + return date"}
@@ -206,7 +219,6 @@ class loans(Resource):
 #   "note": string,
 # }
 @api.route('/notes')
-@api.response(404, "Note not found")
 class Notes(Resource):
 
     @api.doc('get_note')
@@ -245,6 +257,7 @@ class Notes(Resource):
         note.Content = data_dict['note']
         db.session.commit()
         return "Success!"
+
 
 if __name__ == '__main__':
     app.run()
