@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_restplus import Api, Resource, reqparse
 from Model import *
 import json
 
@@ -7,13 +8,22 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://szrznmfhslbepo:6fa44bfa2f7d2
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
+# initial with an application object
+api = Api(app, version='1.0', title='Book Api', description='An Api for Books')
+
+# request parser
+parser = reqparse.RequestParser()
+
 # create tables if not exist
 with app.app_context():
     db.create_all()
 
-@app.route('/')
-def hello():
-    return "Hello there"
+@api.route('/hello')
+class hello(Resource):
+    parser.add_argument('world')
+    def get(self):
+        args = parser.parse_args()
+        return {'world': args['world']}
 
 # Post json format example:
 # {
@@ -21,9 +31,17 @@ def hello():
 #   "passWord": "yes123"
 # }
 
-@app.route('/users', methods = ['POST'])
-def addUser():
-    if request.method == 'POST':
+
+@api.route('/users')
+class user(Resource):
+    parser.add_argument('username')
+    def get(self):
+        userList = User.query.order_by(User.UserId).all()
+
+        # returned list of User objects must be serialized
+        return jsonify(Serializer.serialize_list(userList))
+
+    def post(self):
         data = request.data
         dataDict = json.loads(data)
         newUser = User(UserName=dataDict['userName'], PassWord=dataDict['passWord'])
@@ -31,21 +49,12 @@ def addUser():
         db.session.commit()
         return "Success!"
 
-@app.route('/users', methods = ['GET'])
-def getUser():
-    if request.method == 'GET':
-        userList = User.query.order_by(User.UserId).all()
-
-        # returned list of User objects must be serialized
-        return jsonify(Serializer.serialize_list(userList))
-
-@app.route('/users', methods = ['DELETE'])
-def deleteUser():
-  username = request.args.get('username')
-  User.query.filter_by(UserName=username).delete()
-  db.session.commit()
-        
-  return "Success!"
+    def delete(self):
+        args = parser.parse_args()
+        username = args['username']
+        User.query.filter_by(UserName=username).delete()
+        db.session.commit()
+        return "Success!"
 
 if __name__ == '__main__':
     app.run()
