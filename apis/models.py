@@ -16,7 +16,7 @@ class User(db.Model):
 
 
 class Author(db.Model):
-    AutherID = db.Column(db.Integer, primary_key=True)
+    AuthorID = db.Column(db.Integer, primary_key=True)
     FirstName = db.Column(db.String(80), unique=False, nullable=False)
     LastName = db.Column(db.String(80), unique=False, nullable=False)
 
@@ -77,7 +77,7 @@ class LoanHistory(db.Model):
 class BookToAuthors(db.Model):
     BookToAuthorsMapId = db.Column(db.Integer, primary_key=True)
     BookId = db.Column(db.Integer, db.ForeignKey(Book.BookID),nullable=False)
-    AutherID = db.Column(db.Integer, db.ForeignKey(Author.AutherID),nullable=False)
+    AutherID = db.Column(db.Integer, db.ForeignKey(Author.AuthorID), nullable=False)
 
     def serialize(self):
         res = Serializer.serialize(self)
