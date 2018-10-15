@@ -4,6 +4,7 @@ import enum
 
 db = SQLAlchemy()
 
+
 class User(db.Model):
     UserId = db.Column(db.Integer, primary_key=True)
     UserName = db.Column(db.String(80), unique=True, nullable=False)
@@ -12,6 +13,7 @@ class User(db.Model):
     def serialize(self):
         res = Serializer.serialize(self)
         return res
+
 
 class Author(db.Model):
     AutherID = db.Column(db.Integer, primary_key=True)
@@ -22,9 +24,11 @@ class Author(db.Model):
         res = Serializer.serialize(self)
         return res
 
+
 class Genre(enum.Enum):
     Science = 'Science'
     Horror = 'Horror'
+
 
 class List(db.Model):
     ListId = db.Column(db.Integer, primary_key=True)
@@ -34,6 +38,7 @@ class List(db.Model):
     def serialize(self):
         res = Serializer.serialize(self)
         return res
+
 
 class Book(db.Model):
     BookID = db.Column(db.Integer, primary_key=True)
@@ -46,6 +51,7 @@ class Book(db.Model):
         res = Serializer.serialize(self)
         return res
 
+
 class Note(db.Model):
     NoteId = db.Column(db.Integer, primary_key=True)
     BookId = db.Column(db.Integer, db.ForeignKey(Book.BookID),nullable=False)
@@ -54,6 +60,7 @@ class Note(db.Model):
     def serialize(self):
         res = Serializer.serialize(self)
         return res
+
 
 class LoanHistory(db.Model):
     LoanId = db.Column(db.Integer, primary_key=True)
@@ -66,6 +73,7 @@ class LoanHistory(db.Model):
         res = Serializer.serialize(self)
         return res
 
+
 class BookToAuthors(db.Model):
     BookToAuthorsMapId = db.Column(db.Integer, primary_key=True)
     BookId = db.Column(db.Integer, db.ForeignKey(Book.BookID),nullable=False)
@@ -74,6 +82,7 @@ class BookToAuthors(db.Model):
     def serialize(self):
         res = Serializer.serialize(self)
         return res
+
 
 class BookToGenres(db.Model):
     BookToGenresId = db.Column(db.Integer, primary_key=True)
@@ -84,6 +93,7 @@ class BookToGenres(db.Model):
         res = Serializer.serialize(self)
         return res
 
+
 class ListToBooks(db.Model):
     ListToBooks = db.Column(db.Integer, primary_key=True)
     ListId = db.Column(db.Integer, db.ForeignKey(List.ListId),nullable=False)
@@ -92,6 +102,7 @@ class ListToBooks(db.Model):
     def serialize(self):
         res = Serializer.serialize(self)
         return res
+
 
 # Serializer that converts class objects to json
 class Serializer(object):

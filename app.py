@@ -71,12 +71,32 @@ class Users(Resource):
         return "Success!"
 
 
+# only for the purpose of testing
+@api.route('/booktogenres')
+class BookToGeneres(Resource):
+    def get(self):
+        list = BookToGenres.query.order_by(BookToGenres.BookToGenresId).all()
+
+        # returned list of User objects must be serialized
+        return list
+
+
+@api.route('/booktoauthors')
+class BookToAuthors(Resource):
+    def get(self):
+        list = BookToAuthors.query.order_by(BookToAuthors.BookToAuthorsMapId).all()
+
+        # returned list of User objects must be serialized
+        return jsonify(Serializer.serialize_list(list))
+
 # Post book json format example:
 # {
 #   "owner_id" : 1,
 #   "title" : "Harry Potter",
 #   "publish_date" : "1993-05-07 10:41:37",
 # }
+
+
 @api.route('/books')
 class Books(Resource):
 
@@ -125,6 +145,26 @@ class Books(Resource):
                         PublishDate=data_dict['publish_date'],
                         LoanedOut=data_dict['loaned_out'])
         db.session.add(new_book)
+        db.session.flush()
+
+        if 'genres' in data_dict:
+            for genre in data_dict['genres']:
+                db.session.add(BookToGenres(BookId=new_book.BookID,
+                                            Genre=genre))
+
+        if 'authors' in data_dict:
+            for author in data_dict['authors']:
+                names = author.split(" ")
+                firstname = names[0]
+                lastname = names[-1]
+                new_author = Author(FirstName=firstname,
+                                    LastName=lastname)
+                db.session.add(new_author)
+                db.session.flush()
+                new_booktoauthors = BookToAuthors(BookId=new_book.BookID,
+                                                  AutherID=new_author.AutherID)
+                db.session.add(new_booktoauthors)
+                db.session.flush()
         db.session.commit()
         return "Success!"
 
@@ -132,6 +172,7 @@ class Books(Resource):
     def delete(self):
         args = parser.parse_args()
         book_id = args['book_id']
+        BookToGenres.query.filter_by(BookId=book_id).delete()
         Book.query.filter_by(BookID=book_id).delete()
         db.session.commit()
         return "Success!"
