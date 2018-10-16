@@ -21,16 +21,12 @@ class Books(Resource):
     def get(self):
         '''Fetch books given constraints'''
         args = parser.parse_args()
-        book_id = args['book_id']
         owner_id = args['owner_id']
         author_id = args['author_id']
+        title = args['title']
         year_start = args['year_start']
         year_end = args['year_end']
         genre = args['genre']
-
-        if book_id is not None:
-            book = Book.query.get(book_id)
-            return jsonify(Serializer.serialize(book))
 
         if owner_id is not None:
             return {"books": "all books from owner"}
