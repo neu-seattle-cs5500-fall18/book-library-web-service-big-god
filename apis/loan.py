@@ -7,8 +7,10 @@ import json
 api = Namespace('loans', description='Loans related operations')
 
 parser = reqparse.RequestParser()
-parser.add_argument('book_id')
-parser.add_argument('user_id')
+parser.add_argument('book_id', help='The identifier of the book loaned out')
+parser.add_argument('owner_id', help='The user_id of the owner of the book')
+parser.add_argument('due', help='The due date of the book')
+parser.add_argument('actual_return_date', help='The acturn return date of the book')
 
 
 @api.route('/')
@@ -18,7 +20,9 @@ class Loans(Resource):
         201: 'Created',
         400: 'Validation Error'
     })
+    @api.expect(parser)
     def post(self):
+        '''create a loan'''
         data = request.data
         data_dict = json.loads(data)
         new_loan_history = LoanHistory(BookId=data_dict['book_id'],
@@ -33,7 +37,9 @@ class Loans(Resource):
         200: 'Success',
         400: 'Validation Error'
     })
-    def get(self):
+    @api.doc(params={'owner_id': 'user_id of the owner'})
+    def get(self): 
+        '''get all loans created by a given user'''
         args = parser.parse_args()
         return {"get loan status": "return or not + return date"}, 200
 
@@ -53,6 +59,8 @@ class LoanOfID(Resource):
     @api.doc(responses={
         200: 'Success',
     })
+
+    @api.expect(parser)
     def put(self, loan_id):
         '''Update the content of a note given its identifier'''
         return 'Success', 200
