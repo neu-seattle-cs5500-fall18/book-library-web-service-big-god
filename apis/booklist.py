@@ -1,11 +1,13 @@
 from flask import request
-from flask_restplus import Namespace, Resource
+from flask_restplus import Namespace, Resource, reqparse
 
-from apis.utils import lists_parser as parser
 from .models import *
 import json
 
 api = Namespace('lists', description='BookLists related operations')
+
+parser = reqparse.RequestParser()
+parser.add_argument('list_name')
 
 
 @api.route('/')

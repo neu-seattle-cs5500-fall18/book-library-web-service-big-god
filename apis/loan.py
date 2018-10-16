@@ -1,11 +1,14 @@
 from flask import request
-from flask_restplus import Namespace, Resource
+from flask_restplus import Namespace, Resource, reqparse
 
-from apis.utils import loans_parser as parser
 from .models import *
 import json
 
 api = Namespace('loans', description='Loans related operations')
+
+parser = reqparse.RequestParser()
+parser.add_argument('book_id')
+parser.add_argument('user_id')
 
 
 # Post loan json format example:

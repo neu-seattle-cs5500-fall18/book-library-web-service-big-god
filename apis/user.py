@@ -1,11 +1,14 @@
 from flask import request, jsonify
-from flask_restplus import Namespace, Resource
+from flask_restplus import Namespace, Resource, reqparse
 
-from apis.utils import users_parser as parser
 from apis.models import *
-import json
 
 api = Namespace('users', description='Users related operations')
+
+# Add more arguments if needed
+parser = reqparse.RequestParser()
+parser.add_argument('username', help='The user\'s username')
+parser.add_argument('password', help='The user\'s password')
 
 
 @api.route('/')
@@ -29,52 +32,54 @@ class Users(Resource):
         201: 'Created',
         400: 'Validation Error'
     })
-    @api.doc(params={'username': 'The username',
-                     'password': 'The password'})
+    @api.expect(parser)
     def post(self):
         '''Create a new user'''
-        data = request.data
-        data_dict = json.loads(data)
-        new_user = User(UserName=data_dict['username'],
-                        PassWord=data_dict['password'])
+        username = request.args['username']
+        password = request.args['password']
+        new_user = User(UserName=username,
+                        PassWord=password)
         db.session.add(new_user)
+        db.session.flush()
         db.session.commit()
-        return "Success!", 201
+        return new_user.serialize(), 201
 
 
-@api.route('/<id>')
-@api.param('id', 'The user identifier')
+@api.route('/<user_id>')
+@api.param('user_id', 'The user identifier')
 @api.response(404, 'User not found')
 class UserOfID(Resource):
     @api.doc('get_user')
     @api.doc(responses={
         200: 'Success',
-        404: 'Not Found'
     })
-    def get(self, id):
+    def get(self, user_id):
         '''Fetch a user given its identifier'''
-        return User.query.get_or_404(id)
+        return User.query.get_or_404(user_id)
 
     @api.doc(responses={
         200: 'Success',
-        404: 'Not Found'
     })
-    @api.doc(params={'username': 'The username',
-                     'password': 'The password'})
-    def put(self, id):
+    @api.expect(parser)
+    def put(self, user_id):
         '''Update the information of a user given its identifier'''
-        data = request.data
-        data_dict = json.loads(data)
-        user = User.query.get(id)
-        user.UserName = data_dict['username']
-        user.PassWord = data_dict['password']
+        user = User.query.get_or_404(user_id)
+        args = parser.parse_args()
+        username = args['username']
+        password = args['password']
+        if username is not None:
+            user.UserName = username
+        if password is not None:
+            user.PassWord = password
         db.session.commit()
-        return 'Success', 200
+        return user.serialize(), 200
 
     @api.doc(responses={
         204: 'Deleted',
-        404: 'Not Found'
     })
-    def delete(self, id):
+    def delete(self, user_id):
         '''Delete an user given its identifier'''
+        User.query.get_or_404(user_id)
+        User.query.filter_by(UserId=user_id).delete()
+        db.session.commit()
         return 'Success', 204
