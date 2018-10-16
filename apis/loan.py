@@ -11,12 +11,6 @@ parser.add_argument('book_id')
 parser.add_argument('user_id')
 
 
-# Post loan json format example:
-# {
-#   "book_id" : 1,
-#   "borrower_id" : "1",
-#   "due" : "1993-05-07 10:41:37",
-# }
 @api.route('/')
 class Loans(Resource):
     @api.doc('create_loan')
@@ -34,20 +28,6 @@ class Loans(Resource):
         db.session.commit()
         return "Success!", 201
 
-    @api.doc('update_loan')
-    @api.doc(responses={
-        200: 'Success',
-        400: 'Validation Error'
-    })
-    def put(self):
-        data = request.data
-        data_dict = json.loads(data)
-        # return_date = data_dict['return_date']
-
-        args = parser.parse_args()
-        loan_id = args['loan_id']
-        return {"update loan": "success"}, 200
-
     @api.doc('get_loan')
     @api.doc(responses={
         200: 'Success',
@@ -56,3 +36,30 @@ class Loans(Resource):
     def get(self):
         args = parser.parse_args()
         return {"get loan status": "return or not + return date"}, 200
+
+
+@api.route('/<loan_id>')
+@api.param('loan_id', 'The loan identifier')
+@api.response(404, 'Note not found')
+class LoanOfID(Resource):
+    @api.doc(responses={
+        200: 'Success',
+    })
+    @api.doc('get_loan')
+    def get(self, loan_id):
+        '''Fetch a loan given its identifier'''
+        return 'Success', 200
+
+    @api.doc(responses={
+        200: 'Success',
+    })
+    def put(self, loan_id):
+        '''Update the content of a note given its identifier'''
+        return 'Success', 200
+
+    @api.doc(responses={
+        204: 'Deleted',
+    })
+    def delete(self, loan_id):
+        '''Delete a note given its identifier'''
+        return 'Success', 204
