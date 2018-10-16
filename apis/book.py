@@ -78,9 +78,12 @@ class Books(Resource):
         db.session.commit()
 
         # if 'genres' in args:
-        #     for genre in args['genres']:
-        #         db.session.add(BookToGenres(BookId=new_book.BookID,
-        #                                     Genre=genre))
+        #     #for genre in args['genres']:
+        #     a = args['genres']
+        #     db.session.add(BookToGenres(BookId=new_book.BookId,
+        #                                 Genre=Genre[a]))
+        #     db.session.flush()
+        #     db.session.commit()
         #
         # if 'authors' in args:
         #     for author in args['authors']:
