@@ -11,7 +11,7 @@ parser = reqparse.RequestParser()
 # TODO: the "owner_id" parameter should be removed after logged in user info is saved
 parser.add_argument('owner_id', help='id of the user who created the list')
 parser.add_argument('list_name', help='name of the list')
-parser.add_argument('books', help='books (represented as book_id) to be included in the list')
+parser.add_argument('books', action='append', help='books (represented as book_id) to be included in the list')
 
 
 @api.route('/')
