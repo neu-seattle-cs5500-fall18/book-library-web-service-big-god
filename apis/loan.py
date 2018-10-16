@@ -1,22 +1,11 @@
 from flask import request
-from flask_restplus import Namespace, Resource, reqparse
+from flask_restplus import Namespace, Resource
+
+from apis.utils import loans_parser as parser
 from .models import *
 import json
 
 api = Namespace('loans', description='Loans related operations')
-
-# request parser
-parser = reqparse.RequestParser()
-parser.add_argument('username')
-parser.add_argument('book_id')
-parser.add_argument('owner_id')
-parser.add_argument('author_id')
-parser.add_argument('year_start')
-parser.add_argument('year_end')
-parser.add_argument('genre')
-parser.add_argument('list_name')
-parser.add_argument('loan_id')
-parser.add_argument('note_id')
 
 
 # Post loan json format example:
@@ -28,6 +17,10 @@ parser.add_argument('note_id')
 @api.route('/')
 class Loans(Resource):
     @api.doc('create_loan')
+    @api.doc(responses={
+        201: 'Created',
+        400: 'Validation Error'
+    })
     def post(self):
         data = request.data
         data_dict = json.loads(data)
@@ -39,6 +32,10 @@ class Loans(Resource):
         return "Success!", 201
 
     @api.doc('update_loan')
+    @api.doc(responses={
+        200: 'Success',
+        400: 'Validation Error'
+    })
     def put(self):
         data = request.data
         data_dict = json.loads(data)
@@ -46,9 +43,13 @@ class Loans(Resource):
 
         args = parser.parse_args()
         loan_id = args['loan_id']
-        return {"update loan": "success"}
+        return {"update loan": "success"}, 200
 
     @api.doc('get_loan')
+    @api.doc(responses={
+        200: 'Success',
+        400: 'Validation Error'
+    })
     def get(self):
         args = parser.parse_args()
-        return {"get loan status": "return or not + return date"}
+        return {"get loan status": "return or not + return date"}, 200
