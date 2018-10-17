@@ -22,8 +22,9 @@ class Lists(Resource):
         400: 'Validation Error'
     })
     @api.doc(params={'owner_id': 'user_id of the owner'})
+    @api.doc(params={'list_name': 'name of the list'})
     def get(self):
-        '''get all lists created by a given user'''
+        '''get all lists given constraints'''
         return 'Success', 200
     
     @api.doc('create_list')

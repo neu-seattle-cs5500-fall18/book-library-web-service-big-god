@@ -8,7 +8,7 @@ api = Namespace('loans', description='Loans related operations')
 
 parser = reqparse.RequestParser()
 parser.add_argument('book_id', help='The identifier of the book loaned out')
-parser.add_argument('owner_id', help='The user_id of the owner of the book')
+parser.add_argument('borrower_id', help='The user_id of the borrower of the book')
 parser.add_argument('due', help='The due date of the book')
 parser.add_argument('actual_return_date', help='The acturn return date of the book')
 
@@ -37,9 +37,12 @@ class Loans(Resource):
         200: 'Success',
         400: 'Validation Error'
     })
-    @api.doc(params={'owner_id': 'user_id of the owner'})
+    @api.doc(params={'book_id': 'The identifier of the book loaned out'})
+    @api.doc(params={'borrower_id': 'user_id of the borrower'})
+    @api.doc(params={'due': 'The due date of the book'})
+    @api.doc(params={'actual_return_date': 'The acturn return date of the book'})
     def get(self): 
-        '''get all loans created by a given user'''
+        '''get all loans given constraints'''
         args = parser.parse_args()
         return {"get loan status": "return or not + return date"}, 200
 
@@ -62,7 +65,7 @@ class LoanOfID(Resource):
 
     @api.expect(parser)
     def put(self, loan_id):
-        '''Update the content of a note given its identifier'''
+        '''Update the content of a loan given its identifier'''
         return 'Success', 200
 
     @api.doc(responses={

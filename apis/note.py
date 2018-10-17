@@ -24,7 +24,7 @@ class Notes(Resource):
     })
     @api.expect(parser)
     def get(self):
-        '''Fetch all notes'''
+        '''Fetch all notes given constraints'''
         args = parser.parse_args()
         book_id = args['book_id']
         user_id = args['user_id']
