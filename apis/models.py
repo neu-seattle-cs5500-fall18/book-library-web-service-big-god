@@ -44,7 +44,7 @@ class List(db.Model):
 class Book(db.Model):
     BookId = db.Column(db.Integer, primary_key=True)
     OwnerId = db.Column(db.Integer, db.ForeignKey(User.UserId), nullable=False)
-    BookName = db.Column(db.String(80), unique=False, nullable=False)
+    BookName = db.Column(db.String(300), unique=False, nullable=False)
     PublishDate = db.Column(db.DateTime, unique=False, nullable=True)
     LoanedOut = db.Column(db.Boolean, unique=False, nullable=True)
 
