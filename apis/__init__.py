@@ -14,6 +14,6 @@ api = Api(
 
 api.add_namespace(book_api, path='/books')
 api.add_namespace(user_api, path='/users')
-api.add_namespace(list_api, path='/lists')
+api.add_namespace(list_api, path='/booklists')
 api.add_namespace(loan_api, path='/loans')
 api.add_namespace(note_api, path='/notes')
