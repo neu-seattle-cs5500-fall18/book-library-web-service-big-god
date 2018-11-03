@@ -1,6 +1,4 @@
-from urllib import response
-
-from flask import jsonify, request
+from flask import jsonify
 from flask_restplus import Namespace, Resource, reqparse
 
 from apis.models import *
