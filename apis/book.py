@@ -9,10 +9,10 @@ api = Namespace('books', description='Books related operations')
 parser = reqparse.RequestParser()
 parser.add_argument('owner_id', help='The user_id of the owner')
 parser.add_argument('title', help='The title of the book')
-parser.add_argument('author_id', help='The id of the author')
+parser.add_argument('authors', action='append', help='The authors of the book')
 parser.add_argument('year_start', help='Find books that published after some year')
 parser.add_argument('year_end', help='Find books that published before some year')
-parser.add_argument('genres', help='The genre that the books belong to')
+parser.add_argument('genres', action='append', help='The genre that the books belong to')
 parser.add_argument('list_name', help='The list name that the books belong to')
 parser.add_argument('loaned_out', help='Boolean if the book is loaned out')
 parser.add_argument('publish_date', help='The publish date of book')
@@ -55,7 +55,7 @@ class Books(Resource):
         # if no params pass in request url, return all books
         # TODO: remove this eventually, only for test
         book_list = Book.query.order_by(Book.BookId).all()
-        response = jsonify(Serializer.serialize_list(book_list))
+        response = Serializer.serialize_list(book_list)
         response.status_code = 200
         return response
 
@@ -75,28 +75,30 @@ class Books(Resource):
         db.session.flush()
         db.session.commit()
 
-        # if 'genres' in args:
-        #     #for genre in args['genres']:
-        #     a = args['genres']
-        #     db.session.add(BookToGenres(BookId=new_book.BookId,
-        #                                 Genre=Genre[a]))
-        #     db.session.flush()
-        #     db.session.commit()
-        #
-        # if 'authors' in args:
-        #     for author in args['authors']:
-        #         names = author.split(" ")
-        #         firstname = names[0]
-        #         lastname = names[-1]
-        #         new_author = Author(FirstName=firstname,
-        #                             LastName=lastname)
-        #         db.session.add(new_author)
-        #         db.session.flush()
-        #         new_booktoauthors = BookToAuthors(BookId=new_book.BookID,
-        #                                           AutherID=new_author.AuthorID)
-        #         db.session.add(new_booktoauthors)
-        #         db.session.flush()
-        #         db.session.commit()
+        print('genres' in args)
+        if args['genres'] is not None:
+            for genre in args['genres']:
+                print(genre)
+                db.session.add(BookToGenres(BookId=new_book.BookId,
+                                            Genre=Genre[genre]))
+                db.session.flush()
+            db.session.commit()
+
+        if args['authors'] is not None:
+            for author in args['authors']:
+                print(author)
+                names = author.split(" ")
+                firstname = names[0]
+                lastname = names[-1]
+                new_author = Author(FirstName=firstname,
+                                    LastName=lastname)
+                db.session.add(new_author)
+                db.session.flush()
+                new_booktoauthors = BookToAuthors(BookId=new_book.BookId,
+                                                  AuthorId=new_author.AuthorId)
+                db.session.add(new_booktoauthors)
+                db.session.flush()
+                db.session.commit()
         return new_book.serialize(), 201
 
 
