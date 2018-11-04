@@ -20,8 +20,6 @@ parser.add_argument('publish_date', help='The publish date of book')
 
 @api.route('/')
 class Books(Resource):
-    # TODO 1: current logic combine all get queries in one function, need to refactor
-    #         it when the query become complicated
     @api.doc(responses={
         200: 'Success',
         400: 'Validation Error'
@@ -32,40 +30,62 @@ class Books(Resource):
         '''Fetch books given constraints'''
         args = parser.parse_args()
         owner_id = args['owner_id']
-        author_id = args['author_id']
+        author_id = args['authors']
         title = args['title']
         year_start = args['year_start']
         year_end = args['year_end']
         genres = args['genres']
 
-        if owner_id is not None:
-            return {"books": "all books from owner"}
-            # ownerBookList = Book.query.filter_by(OwnerID=owner_id)
-            # return jsonify(Serializer.serialize_list(ownerBookList))
+        queries = []
 
-        if author_id is not None:
-            return {"books": "all books from author"}
+        if owner_id is not None:
+            queries.append(Book.OwnerId==owner_id)
+        
+        if title is not None:
+            queries.append(Book.BookName==title)
 
         if year_start is not None:
-            return {"books": "all books from year_start to year_end"}
+            queries.append(Book.PublishDate >= year_start)
+
+        if year_end is not None:
+            queries.append(Book.PublishDate <= year_end)
+
+        if author_id is not None:
+            queries.append(Author.AuthorId.in_(author_id))
 
         if genres is not None:
-            return {"books": "all books of genres"}
+            queries.append(BookToGenres.Genre.in_(genres))
 
-        # if no params pass in request url, return all books
-        # TODO: remove this eventually, only for test
-        book_list = Book.query.order_by(Book.BookId).all()
-        response = Serializer.serialize_list(book_list)
-        response.status_code = 200
-        return response
+        book_list = db.session.query(Book, BookToAuthors, Author, BookToGenres)\
+            .join(BookToAuthors,Book.BookId==BookToAuthors.BookId)\
+            .join(Author, Author.AuthorId==BookToAuthors.AuthorId)\
+            .join(BookToGenres, BookToGenres.BookId==Book.BookId)\
+            .filter(*queries).order_by(Book.BookId).all()
+
+        retList = []
+
+        # query returns list of books, need to parse the fields of each book
+        for book in book_list:
+            fields = {}
+
+            for field in Serializer.serialize_list(book):
+                for k, v in field.items():
+                    if (k not in fields):
+                        fields[k] = v
+            
+            retList.append(fields)
+
+        return retList, 200
+
 
     @api.doc(responses={
         201: 'Created',
         400: 'Validation Error'
     })
     @api.doc('create_book')
-    @api.doc(params={'title': 'The book title',
-                     'owner_id': 'The user_id of the owner'})
+    # @api.doc(params={'title': 'The book title',
+    #                  'owner_id': 'The user_id of the owner'})
+    @api.expect(parser)
     def post(self):
         '''Add a new book to library'''
         args = parser.parse_args()
@@ -78,15 +98,15 @@ class Books(Resource):
         print('genres' in args)
         if args['genres'] is not None:
             for genre in args['genres']:
-                print(genre)
+                # print(genre)
                 db.session.add(BookToGenres(BookId=new_book.BookId,
-                                            Genre=Genre[genre]))
+                                            Genre=genre))
                 db.session.flush()
             db.session.commit()
 
         if args['authors'] is not None:
             for author in args['authors']:
-                print(author)
+                # print(author)
                 names = author.split(" ")
                 firstname = names[0]
                 lastname = names[-1]
@@ -112,8 +132,28 @@ class BookOfID(Resource):
     @api.doc('get_book')
     def get(self, book_id):
         '''Fetch a book given its identifier'''
-        book = Book.query.get_or_404(book_id)
-        return book.serialize(), 200
+        # book = Book.query.get_or_404(book_id)
+
+        book_list = db.session.query(Book, BookToAuthors, Author, BookToGenres)\
+            .join(BookToAuthors,Book.BookId==BookToAuthors.BookId)\
+            .join(Author, Author.AuthorId==BookToAuthors.AuthorId)\
+            .join(BookToGenres, BookToGenres.BookId==Book.BookId)\
+            .filter_by(BookId=book_id).order_by(Book.BookId).all()
+
+        retList = []
+
+        # query returns list of books, need to parse the fields of each book
+        for book in book_list:
+            fields = {}
+
+            for field in Serializer.serialize_list(book):
+                for k, v in field.items():
+                    if (k not in fields):
+                        fields[k] = v
+            
+            retList.append(fields)
+
+        return retList[0], 200
 
     @api.doc(responses={
         200: 'Success',
@@ -144,6 +184,8 @@ class BookOfID(Resource):
     def delete(self, book_id):
         '''Delete a book given its identifier'''
         Book.query.get_or_404(book_id)
+        BookToAuthors.query.filter_by(BookId=book_id).delete()
+        BookToGenres.query.filter_by(BookId=book_id).delete()
         Book.query.filter_by(BookId=book_id).delete()
         db.session.commit()
         return 'Success', 204

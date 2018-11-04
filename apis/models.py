@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.inspection import inspect
 import enum
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -25,16 +26,19 @@ class Author(db.Model):
         return res
 
 
-class Genre(enum.Enum):
-    Science = 'Science'
-    Horror = 'Horror'
+# class Genre(enum.Enum):
+#     Science = 'Science'
+#     Horror = 'Horror'
+
+#     def serialize(self):
+#         return repr(self)
 
 
 class List(db.Model):
     ListId = db.Column(db.Integer, primary_key=True)
     ListName = db.Column(db.String(80), unique=False, nullable=False)
     OwnerId = db.Column(db.Integer, db.ForeignKey(User.UserId), unique=False, nullable=False)
-    Created = db.Column(db.DateTime, unique=False, nullable=True)
+    Created = db.Column(db.DateTime, unique=False, nullable=False, default=datetime.utcnow)
 
     def serialize(self):
         res = Serializer.serialize(self)
@@ -89,7 +93,7 @@ class BookToAuthors(db.Model):
 class BookToGenres(db.Model):
     BookToGenresId = db.Column(db.Integer, primary_key=True)
     BookId = db.Column(db.Integer, db.ForeignKey(Book.BookId), nullable=False)
-    Genre = db.Column(db.Enum(Genre))
+    Genre = db.Column(db.String(80))
 
     def serialize(self):
         res = Serializer.serialize(self)

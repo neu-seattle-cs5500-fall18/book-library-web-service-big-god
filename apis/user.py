@@ -55,7 +55,7 @@ class UserOfID(Resource):
     })
     def get(self, user_id):
         '''Fetch a user given its identifier'''
-        return User.query.get_or_404(user_id)
+        return User.query.get_or_404(user_id).serialize(), 200
 
     @api.doc(responses={
         200: 'Success',
