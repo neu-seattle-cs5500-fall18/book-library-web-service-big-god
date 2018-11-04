@@ -8,6 +8,7 @@ api = Namespace('notes', description='Notes related operations')
 parser = reqparse.RequestParser()
 parser.add_argument('book_id', help='The book_id of the book which owns this note')
 parser.add_argument('user_id', help='The user_id of the owner')
+parser.add_argument('content', help='The content of the note')
 
 
 # Post note json format example:
@@ -22,14 +23,22 @@ class Notes(Resource):
         200: 'Success',
         400: 'Validation Error',
     })
-    @api.expect(parser)
+    @api.param('book_id', 'The book_id of the book which owns this note')
+    @api.param('user_id', 'The user_id of the owner')
     def get(self):
         '''Fetch all notes given constraints'''
         args = parser.parse_args()
         book_id = args['book_id']
         user_id = args['user_id']
-        # TODO: add logic to find by book_id and/or user_id
-        note_list = Note.query.order_by(Note.NoteId).all()
+
+        if book_id is not None and user_id is not None:
+            note_list = Note.query.filter_by(BookId=book_id, UserId=user_id).order_by(Note.NoteId).all()
+        elif book_id is not None:
+            note_list = Note.query.filter_by(BookId=book_id).order_by(Note.NoteId).all()
+        elif user_id is not None:
+            note_list = Note.query.filter_by(UserId=user_id).order_by(Note.NoteId).all()
+        else:
+            note_list = Note.query.order_by(Note.NoteId).all()
 
         # returned list of User objects must be serialized
         response = jsonify(Serializer.serialize_list(note_list))
@@ -66,7 +75,7 @@ class NoteOfID(Resource):
     })
     def get(self, note_id):
         '''Fetch a note given its identifier'''
-        return Note.query.get_or_404(note_id)
+        return Note.query.get_or_404(note_id).serialize()
 
     @api.doc(responses={
         200: 'Success',
@@ -79,6 +88,9 @@ class NoteOfID(Resource):
         content = args['content']
         if content is not None:
             note.Content = content
+
+        print(note.Content)
+        print(content)
         db.session.commit()
         return note.serialize(), 200
 
