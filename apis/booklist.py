@@ -11,6 +11,7 @@ parser.add_argument('owner_id', help='id of the user who created the list')
 parser.add_argument('list_name', help='name of the list')
 parser.add_argument('books', action='append', help='books (represented as book_id) to be included in the list')
 
+
 @api.route('/')
 class Lists(Resource):
 
@@ -42,7 +43,6 @@ class Lists(Resource):
 
         retList = []
 
-
         for book in book_list:
             fields = {}
 
@@ -67,7 +67,6 @@ class Lists(Resource):
         
         return list(dict.values()), 200
 
-    
     @api.doc('create_list')
     @api.doc(responses={
         201: 'Created',

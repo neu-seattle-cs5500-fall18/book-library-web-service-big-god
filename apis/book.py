@@ -1,5 +1,5 @@
 from flask_restplus import Namespace, Resource, reqparse
-
+from dateutil import parser as datetime_parser
 from models import *
 
 api = Namespace('books', description='Books related operations')
@@ -15,6 +15,22 @@ parser.add_argument('genres', action='append', help='The genre that the books be
 parser.add_argument('list_name', help='The list name that the books belong to')
 parser.add_argument('loaned_out', help='Boolean if the book is loaned out')
 parser.add_argument('publish_date', help='The publish date of book')
+
+post_parser = parser.copy()
+post_parser.remove_argument('year_start')
+post_parser.remove_argument('year_end')
+post_parser.remove_argument('list_name')
+post_parser.remove_argument('loaned_out')
+post_parser.replace_argument('owner_id', help='The user_id of the owner', required=True)
+post_parser.replace_argument('title', help='The title of the book', required=True)
+
+put_parser = parser.copy()
+put_parser.remove_argument('year_start')
+put_parser.remove_argument('year_end')
+put_parser.remove_argument('owner_id')
+# Not allowed to modify loaned_out directly
+# It will be modified automatically when new LoanHistory is added or book is returned
+put_parser.remove_argument('loaned_out')
 
 
 @api.route('/')
@@ -81,14 +97,15 @@ class Books(Resource):
         400: 'Validation Error'
     })
     @api.doc('create_book')
-    # @api.doc(params={'title': 'The book title',
-    #                  'owner_id': 'The user_id of the owner'})
-    @api.expect(parser)
+    @api.expect(post_parser)
     def post(self):
         '''Add a new book to library'''
-        args = parser.parse_args()
+        args = post_parser.parse_args()
         new_book = Book(OwnerId=args['owner_id'],
                         BookName=args['title'])
+        publish_date = args['publish_date']
+        if publish_date is not None:
+            new_book.PublishDate = datetime_parser.parse(publish_date)
         db.session.add(new_book)
         db.session.flush()
         db.session.commit()
@@ -102,10 +119,10 @@ class Books(Resource):
                 db.session.flush()
             db.session.commit()
         else:
-                db.session.add(BookToGenres(BookId=new_book.BookId,
-                                            Genre=''))
-                db.session.flush()
-                db.session.commit()
+            db.session.add(BookToGenres(BookId=new_book.BookId,
+                                        Genre=''))
+            db.session.flush()
+            db.session.commit()
 
         if args['authors'] is not None:
             for author in args['authors']:
@@ -123,16 +140,16 @@ class Books(Resource):
                 db.session.flush()
                 db.session.commit()
         else:
-                new_author = Author(FirstName='',
-                                    LastName='')
-                db.session.add(new_author)
-                db.session.flush()
-                new_booktoauthors = BookToAuthors(BookId=new_book.BookId,
-                                                  AuthorId=new_author.AuthorId)
-                db.session.add(new_booktoauthors)
-                db.session.flush()
-                db.session.commit()
-                
+            new_author = Author(FirstName='',
+                                LastName='')
+            db.session.add(new_author)
+            db.session.flush()
+            new_booktoauthors = BookToAuthors(BookId=new_book.BookId,
+                                              AuthorId=new_author.AuthorId)
+            db.session.add(new_booktoauthors)
+            db.session.flush()
+            db.session.commit()
+
         return new_book.serialize(), 201
 
 
@@ -146,8 +163,6 @@ class BookOfID(Resource):
     @api.doc('get_book')
     def get(self, book_id):
         '''Fetch a book given its identifier'''
-        # book = Book.query.get_or_404(book_id)
-
         book_list = db.session.query(Book, BookToAuthors, Author, BookToGenres) \
             .join(BookToAuthors, Book.BookId == BookToAuthors.BookId) \
             .join(Author, Author.AuthorId == BookToAuthors.AuthorId) \
@@ -172,25 +187,40 @@ class BookOfID(Resource):
     @api.doc(responses={
         200: 'Success',
     })
-    @api.doc(params={'title': 'The book title',
-                     'publish_date': 'The publication date',
-                     'loaned_out': 'True if the book is loaned out'})
+    @api.expect(put_parser)
     def put(self, book_id):
         '''Update the information of a book given its identifier'''
         book = Book.query.get_or_404(book_id)
         args = parser.parse_args()
         title = args['title']
         publish_date = args['publish_date']
-        loaned_out = args['loaned_out']
         if title is not None:
             book.BookName = title
         if publish_date is not None:
-            book.PublishDate = publish_date
-        if loaned_out is not None:
-            book.LoanedOut = loaned_out
-        # for genres or authors or lists, use the map classes
+            book.PublishDate = datetime_parser.parse(publish_date)
+        if args['genres'] is not None:
+            BookToGenres.query.filter_by(BookId=book_id).delete()
+            for genre in args['genres']:
+                # print(genre)
+                db.session.add(BookToGenres(BookId=book_id, Genre=genre))
+        if args['authors'] is not None:
+            BookToAuthors.query.filter_by(BookId=book_id).delete()
+            for author in args['authors']:
+                # print(author)
+                names = author.split(" ")
+                firstname = names[0]
+                lastname = names[-1]
+                author = Author.query.filter_by(FirstName=firstname, LastName=lastname).first()
+                if not author:
+                    author = Author(FirstName=firstname, LastName=lastname)
+                    db.session.add(author)
+                    author = Author.query.filter_by(FirstName=firstname, LastName=lastname).first()
+                new_booktoauthors = BookToAuthors(BookId=book_id,
+                                                  AuthorId=author.AuthorId)
+                db.session.add(new_booktoauthors)
+        db.session.flush()
         db.session.commit()
-        return book.serialize(), 200
+        return BookOfID.get(self, book_id)
 
     @api.doc(responses={
         204: 'Deleted',

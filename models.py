@@ -52,7 +52,13 @@ class Book(db.Model):
     LoanedOut = db.Column(db.Boolean, unique=False, nullable=True)
 
     def serialize(self):
-        res = Serializer.serialize(self)
+        res = {
+            "BookId": self.BookId,
+            "OwnerId": self.OwnerId,
+            "BookName": self.BookName,
+            "PublishDate": self.PublishDate.__str__(),
+            "LoanedOut": self.LoanedOut,
+        }
         return res
 
 
@@ -89,6 +95,7 @@ class BookToAuthors(db.Model):
     BookToAuthorsMapId = db.Column(db.Integer, primary_key=True)
     BookId = db.Column(db.Integer, db.ForeignKey(Book.BookId), nullable=False)
     AuthorId = db.Column(db.Integer, db.ForeignKey(Author.AuthorId), nullable=False)
+    __table_args__ = (db.UniqueConstraint('BookId', 'AuthorId', name='_book_author_uc'),)
 
     def serialize(self):
         res = Serializer.serialize(self)
@@ -99,6 +106,7 @@ class BookToGenres(db.Model):
     BookToGenresId = db.Column(db.Integer, primary_key=True)
     BookId = db.Column(db.Integer, db.ForeignKey(Book.BookId), nullable=False)
     Genre = db.Column(db.String(80))
+    __table_args__ = (db.UniqueConstraint('BookId', 'Genre', name='_book_genre_uc'),)
 
     def serialize(self):
         res = Serializer.serialize(self)
@@ -109,6 +117,7 @@ class ListToBooks(db.Model):
     ListToBooks = db.Column(db.Integer, primary_key=True)
     ListId = db.Column(db.Integer, db.ForeignKey(List.ListId), nullable=False)
     BookId = db.Column(db.Integer, db.ForeignKey(Book.BookId), nullable=False)
+    __table_args__ = (db.UniqueConstraint('ListId', 'BookId', name='_list_book_uc'),)
 
     def serialize(self):
         res = Serializer.serialize(self)

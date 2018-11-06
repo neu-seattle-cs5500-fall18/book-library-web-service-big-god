@@ -1,5 +1,3 @@
-import json
-
 from flask_restplus import Namespace, Resource, reqparse
 from dateutil import parser as datetime_parser
 from models import *
@@ -22,8 +20,8 @@ class Loans(Resource):
         400: 'Validation Error',
         404: 'Book or User Not Found',
     })
-    @api.doc(params={'book_id': 'The identifier of the book loaned out'})
-    @api.doc(params={'borrower_id': 'user_id of the borrower'})
+    @api.doc(params={'book_id': 'The identifier of the book loaned out'}, required=True)
+    @api.doc(params={'borrower_id': 'user_id of the borrower'}, required=True)
     @api.doc(params={'due': 'The due date of the book'})
     def post(self):
         '''create a loan'''
@@ -32,10 +30,11 @@ class Loans(Resource):
         book = Book.query.get_or_404(book_id)
         if book.LoanedOut:
             return "The book is already loaned out", 400
-        due = datetime_parser.parse(args['due'])
         new_loan_history = LoanHistory(BookId=args['book_id'],
-                                       BorrowerId=args['borrower_id'],
-                                       Due=due)
+                                       BorrowerId=args['borrower_id'])
+        due = args['due']
+        if due is not None:
+            new_loan_history.Due = datetime_parser.parse(due)
         db.session.add(new_loan_history)
         book.LoanedOut = True
         db.session.flush()
