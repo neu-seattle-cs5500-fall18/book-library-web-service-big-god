@@ -101,6 +101,11 @@ class Books(Resource):
                                             Genre=genre))
                 db.session.flush()
             db.session.commit()
+        else:
+                db.session.add(BookToGenres(BookId=new_book.BookId,
+                                            Genre=''))
+                db.session.flush()
+                db.session.commit()
 
         if args['authors'] is not None:
             for author in args['authors']:
@@ -117,6 +122,17 @@ class Books(Resource):
                 db.session.add(new_booktoauthors)
                 db.session.flush()
                 db.session.commit()
+        else:
+                new_author = Author(FirstName='',
+                                    LastName='')
+                db.session.add(new_author)
+                db.session.flush()
+                new_booktoauthors = BookToAuthors(BookId=new_book.BookId,
+                                                  AuthorId=new_author.AuthorId)
+                db.session.add(new_booktoauthors)
+                db.session.flush()
+                db.session.commit()
+                
         return new_book.serialize(), 201
 
 
