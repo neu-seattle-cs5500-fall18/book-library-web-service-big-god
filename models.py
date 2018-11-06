@@ -1,6 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.inspection import inspect
-import enum
 from datetime import datetime
 
 db = SQLAlchemy()
@@ -76,7 +75,13 @@ class LoanHistory(db.Model):
     ActualReturnDate = db.Column(db.DateTime, unique=False, nullable=True)
 
     def serialize(self):
-        res = Serializer.serialize(self)
+        res = {
+            "LoanId": self.LoanId,
+            "BookId": self.BookId,
+            "BorrowerId": self.BorrowerId,
+            "Due": self.Due.__str__(),
+            "ActualReturnDate": self.ActualReturnDate.__str__(),
+        }
         return res
 
 

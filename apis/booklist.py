@@ -1,8 +1,6 @@
-from flask import request, jsonify
 from flask_restplus import Namespace, Resource, reqparse
 
-from .models import *
-import json
+from models import *
 
 api = Namespace('lists', description='BookLists related operations')
 

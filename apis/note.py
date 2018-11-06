@@ -1,7 +1,7 @@
 from flask import jsonify, request
 from flask_restplus import Namespace, Resource, reqparse
 
-from .models import *
+from models import *
 
 api = Namespace('notes', description='Notes related operations')
 

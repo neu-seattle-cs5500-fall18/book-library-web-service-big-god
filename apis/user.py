@@ -1,7 +1,7 @@
 from flask import request, jsonify
 from flask_restplus import Namespace, Resource, reqparse
 
-from apis.models import *
+from models import *
 
 api = Namespace('users', description='Users related operations')
 

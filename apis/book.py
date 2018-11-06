@@ -1,7 +1,6 @@
-from flask import jsonify
 from flask_restplus import Namespace, Resource, reqparse
 
-from apis.models import *
+from models import *
 
 api = Namespace('books', description='Books related operations')
 
@@ -39,10 +38,10 @@ class Books(Resource):
         queries = []
 
         if owner_id is not None:
-            queries.append(Book.OwnerId==owner_id)
-        
+            queries.append(Book.OwnerId == owner_id)
+
         if title is not None:
-            queries.append(Book.BookName==title)
+            queries.append(Book.BookName == title)
 
         if year_start is not None:
             queries.append(Book.PublishDate >= year_start)
@@ -56,13 +55,13 @@ class Books(Resource):
         if genres is not None:
             queries.append(BookToGenres.Genre.in_(genres))
 
-        book_list = db.session.query(Book, BookToAuthors, Author, BookToGenres)\
-            .join(BookToAuthors,Book.BookId==BookToAuthors.BookId)\
-            .join(Author, Author.AuthorId==BookToAuthors.AuthorId)\
-            .join(BookToGenres, BookToGenres.BookId==Book.BookId)\
+        book_list = db.session.query(Book, BookToAuthors, Author, BookToGenres) \
+            .join(BookToAuthors, Book.BookId == BookToAuthors.BookId) \
+            .join(Author, Author.AuthorId == BookToAuthors.AuthorId) \
+            .join(BookToGenres, BookToGenres.BookId == Book.BookId) \
             .filter(*queries).order_by(Book.BookId).all()
 
-        retList = []
+        ret_list = []
 
         # query returns list of books, need to parse the fields of each book
         for book in book_list:
@@ -70,13 +69,12 @@ class Books(Resource):
 
             for field in Serializer.serialize_list(book):
                 for k, v in field.items():
-                    if (k not in fields):
+                    if k not in fields:
                         fields[k] = v
-            
-            retList.append(fields)
 
-        return retList, 200
+            ret_list.append(fields)
 
+        return ret_list, 200
 
     @api.doc(responses={
         201: 'Created',
@@ -134,13 +132,13 @@ class BookOfID(Resource):
         '''Fetch a book given its identifier'''
         # book = Book.query.get_or_404(book_id)
 
-        book_list = db.session.query(Book, BookToAuthors, Author, BookToGenres)\
-            .join(BookToAuthors,Book.BookId==BookToAuthors.BookId)\
-            .join(Author, Author.AuthorId==BookToAuthors.AuthorId)\
-            .join(BookToGenres, BookToGenres.BookId==Book.BookId)\
+        book_list = db.session.query(Book, BookToAuthors, Author, BookToGenres) \
+            .join(BookToAuthors, Book.BookId == BookToAuthors.BookId) \
+            .join(Author, Author.AuthorId == BookToAuthors.AuthorId) \
+            .join(BookToGenres, BookToGenres.BookId == Book.BookId) \
             .filter_by(BookId=book_id).order_by(Book.BookId).all()
 
-        retList = []
+        ret_list = []
 
         # query returns list of books, need to parse the fields of each book
         for book in book_list:
@@ -148,12 +146,12 @@ class BookOfID(Resource):
 
             for field in Serializer.serialize_list(book):
                 for k, v in field.items():
-                    if (k not in fields):
+                    if k not in fields:
                         fields[k] = v
-            
-            retList.append(fields)
 
-        return retList[0], 200
+            ret_list.append(fields)
+
+        return ret_list[0], 200
 
     @api.doc(responses={
         200: 'Success',
