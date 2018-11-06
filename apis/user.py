@@ -3,7 +3,7 @@ from flask_restplus import Namespace, Resource, reqparse
 
 from models import *
 
-api = Namespace('users', description='Users related operations')
+api = Namespace('User', description='Users related operations')
 
 # Add more arguments if needed
 parser = reqparse.RequestParser()

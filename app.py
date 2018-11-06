@@ -19,22 +19,4 @@ api.init_app(app)
 if __name__ == "__main__":
     app.run(debug=True)
 
-#
-# # only for the purpose of testing
-# @api.route('/booktogenres')
-# class BookToGeneres(Resource):
-#     def get(self):
-#         list = BookToGenres.query.order_by(BookToGenres.BookToGenresId).all()
-#
-#         # returned list of User objects must be serialized
-#         return list
-#
-#
-# @api.route('/booktoauthors')
-# class BookToAuthors(Resource):
-#     def get(self):
-#         list = BookToAuthors.query.order_by(BookToAuthors.BookToAuthorsMapId).all()
-#
-#         # returned list of User objects must be serialized
-#         return jsonify(Serializer.serialize_list(list))
 

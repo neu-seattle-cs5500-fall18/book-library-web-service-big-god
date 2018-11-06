@@ -3,7 +3,7 @@ from flask_restplus import Namespace, Resource, reqparse
 
 from models import *
 
-api = Namespace('notes', description='Notes related operations')
+api = Namespace('Note', description='Notes related operations')
 
 parser = reqparse.RequestParser()
 parser.add_argument('book_id', help='The book_id of the book which owns this note')

@@ -3,13 +3,18 @@ from dateutil import parser as datetime_parser
 from models import *
 
 
-api = Namespace('loans', description='Loans related operations')
+api = Namespace('Loan History', description='Loans related operations')
 
 parser = reqparse.RequestParser()
 parser.add_argument('book_id', help='The identifier of the book loaned out')
 parser.add_argument('borrower_id', help='The user_id of the borrower of the book')
 parser.add_argument('due', help='The due date of the book')
 parser.add_argument('actual_return_date', help='The actual return date of the book')
+
+post_parser = parser.copy()
+post_parser.remove_argument('actual_return_date')
+post_parser.replace_argument('book_id', help='The identifier of the book loaned out', required=True)
+post_parser.replace_argument('borrower_id', help='The user_id of the borrower of the book', required=True)
 
 
 @api.route('/')
@@ -20,12 +25,10 @@ class Loans(Resource):
         400: 'Validation Error',
         404: 'Book or User Not Found',
     })
-    @api.doc(params={'book_id': 'The identifier of the book loaned out'}, required=True)
-    @api.doc(params={'borrower_id': 'user_id of the borrower'}, required=True)
-    @api.doc(params={'due': 'The due date of the book'})
+    @api.expect(post_parser)
     def post(self):
         '''create a loan'''
-        args = parser.parse_args()
+        args = post_parser.parse_args()
         book_id = args['book_id']
         book = Book.query.get_or_404(book_id)
         if book.LoanedOut:

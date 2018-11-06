@@ -2,7 +2,7 @@ from flask_restplus import Namespace, Resource, reqparse
 
 from models import *
 
-api = Namespace('lists', description='BookLists related operations')
+api = Namespace('Book List', description='BookLists related operations')
 
 parser = reqparse.RequestParser()
 

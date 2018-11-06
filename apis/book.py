@@ -2,7 +2,7 @@ from flask_restplus import Namespace, Resource, reqparse
 from dateutil import parser as datetime_parser
 from models import *
 
-api = Namespace('books', description='Books related operations')
+api = Namespace('Book', description='Books related operations')
 
 # Add more arguments if needed
 parser = reqparse.RequestParser()
