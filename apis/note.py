@@ -53,9 +53,14 @@ class Notes(Resource):
     @api.expect(parser)
     def post(self):
         '''Create a new note'''
-        book_id = request.args['book_id']
-        user_id = request.args['user_id']
-        content = request.args['Content']
+        args = parser.parse_args()
+        #book_id = request.args['book_id']
+        #user_id = request.args['user_id']
+        #content = request.args['Content']
+        book_id = args['book_id']
+        user_id = args['user_id']
+        content = args['content']
+
         new_note = Note(BookId=book_id,
                         UserId=user_id,
                         Content=content)
